@@ -41,7 +41,8 @@ canvas{display:block;width:100%;height:auto;border-radius:4px}
 const canvas=document.getElementById('art'),ctx=canvas.getContext('2d');
 const bg=new Image(); bg.src='frame.jpg';
 let userPhoto=null, scale=1, x=0, y=0, dragging=false, lastX=0,lastY=0;
-const cx=905, cy=954, r=196;
+// Photo opening measured from frame.jpg (1536x1536, displayed at 1280x1280).
+const cx=927, cy=981, r=198;
 const nameInput=document.getElementById('personName');
 function draw(){
   if(!bg.complete || !bg.naturalWidth){requestAnimationFrame(draw);return;}
@@ -57,7 +58,8 @@ function draw(){
   // Replace the sample name while preserving the original green nameplate.
   ctx.save();
   ctx.fillStyle='#00512f';
-  const bx=690, by=1142, bw=444, bh=64, rad=15;
+  // Existing green nameplate position in frame.jpg.
+  const bx=708, by=1170, bw=455, bh=67, rad=16;
   ctx.beginPath();ctx.moveTo(bx+rad,by);ctx.lineTo(bx+bw-rad,by);ctx.quadraticCurveTo(bx+bw,by,bx+bw,by+rad);
   ctx.lineTo(bx+bw,by+bh-rad);ctx.quadraticCurveTo(bx+bw,by+bh,bx+bw-rad,by+bh);
   ctx.lineTo(bx+rad,by+bh);ctx.quadraticCurveTo(bx,by+bh,bx,by+bh-rad);
