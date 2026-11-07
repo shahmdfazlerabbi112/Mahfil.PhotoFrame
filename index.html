@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ইসলামিক মাহফিল ফটো ফ্রেম</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#edf2ed;color:#173b2c;font-family:Arial,"Noto Sans Bengali",sans-serif}
+.wrap{max-width:980px;margin:24px auto;padding:16px;display:grid;grid-template-columns:330px 1fr;gap:20px}
+.panel,.preview{background:#fff;border-radius:14px;padding:18px;box-shadow:0 4px 18px #00000012}
+h2{font-size:20px;margin:0 0 16px}label{display:block;font-weight:700;margin:13px 0 6px}
+input[type=text],input[type=file]{width:100%;padding:10px;border:1px solid #cbd8cf;border-radius:8px;background:#fff}
+input[type=range]{width:100%}button{border:0;border-radius:8px;padding:12px 14px;background:#075b38;color:white;font-size:15px;font-weight:700;cursor:pointer;width:100%;margin-top:12px}
+button.secondary{background:#e8f1eb;color:#075b38;border:1px solid #b7d0c0}
+small{color:#63766a;line-height:1.5}.canvasbox{width:100%;max-width:650px;margin:auto}
+canvas{display:block;width:100%;height:auto;border-radius:4px}
+.tip{font-size:13px;color:#607367;margin-top:12px}
+@media(max-width:760px){.wrap{grid-template-columns:1fr;margin:8px auto;padding:10px}.preview{order:1}.panel{order:2}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="panel">
+    <h2>আপনার ফটোফ্রেম তৈরি করুন</h2>
+    <label for="photo">নিজের ছবি নির্বাচন করুন</label>
+    <input id="photo" type="file" accept="image/*">
+    <label for="personName">আপনার নাম</label>
+    <input id="personName" type="text" value="আপনার নাম লিখুন" maxlength="32">
+    <label for="zoom">ছবির জুম</label>
+    <input id="zoom" type="range" min="0.7" max="2.5" step="0.01" value="1">
+    <p class="tip">ছবির ওপর মাউস/আঙুল চেপে ধরে টেনে অবস্থান ঠিক করুন। জুম স্লাইডার দিয়ে ছবির আকার বদলান।</p>
+    <button id="download">PNG ছবি ডাউনলোড করুন</button>
+    <button class="secondary" id="reset">ছবির অবস্থান রিসেট</button>
+    <p class="tip">আপনার ছবি ও নাম শুধু আপনার ডিভাইসেই প্রসেস হবে; সার্ভারে আপলোড হবে না।</p>
+  </section>
+  <section class="preview">
+    <div class="canvasbox"><canvas id="art" width="1280" height="1280"></canvas></div>
+  </section>
+</div>
+<script>
+const canvas=document.getElementById('art'),ctx=canvas.getContext('2d');
+const bg=new Image(); bg.src='frame.jpg';
+let userPhoto=null, scale=1, x=0, y=0, dragging=false, lastX=0,lastY=0;
+const cx=905, cy=954, r=196;
+const nameInput=document.getElementById('personName');
+function draw(){
+  if(!bg.complete || !bg.naturalWidth){requestAnimationFrame(draw);return;}
+  ctx.clearRect(0,0,1280,1280);ctx.drawImage(bg,0,0,1280,1280);
+  if(userPhoto){
+    const fit=Math.max((r*2)/userPhoto.width,(r*2)/userPhoto.height);
+    const s=fit*scale, w=userPhoto.width*s,h=userPhoto.height*s;
+    ctx.save();ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.clip();
+    ctx.drawImage(userPhoto,cx-w/2+x,cy-h/2+y,w,h);ctx.restore();
+  } else {
+    // Keep the sample portrait visible until a new photo is selected.
+  }
+  // Replace the sample name while preserving the original green nameplate.
+  ctx.save();
+  ctx.fillStyle='#00512f';
+  const bx=690, by=1142, bw=444, bh=64, rad=15;
+  ctx.beginPath();ctx.moveTo(bx+rad,by);ctx.lineTo(bx+bw-rad,by);ctx.quadraticCurveTo(bx+bw,by,bx+bw,by+rad);
+  ctx.lineTo(bx+bw,by+bh-rad);ctx.quadraticCurveTo(bx+bw,by+bh,bx+bw-rad,by+bh);
+  ctx.lineTo(bx+rad,by+bh);ctx.quadraticCurveTo(bx,by+bh,bx,by+bh-rad);
+  ctx.lineTo(bx,by+rad);ctx.quadraticCurveTo(bx,by,bx+rad,by);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';
+  let name=(nameInput.value||'আপনার নাম').trim();
+  let fs=43;ctx.font=`bold ${fs}px "Noto Sans Bengali", sans-serif`;
+  while(ctx.measureText(name).width>bw-30 && fs>24){fs-=1;ctx.font=`bold ${fs}px "Noto Sans Bengali", sans-serif`;}
+  ctx.fillText(name,bx+bw/2,by+bh/2+1,bw-24);
+  ctx.restore();
+}
+bg.onload=draw;
+document.getElementById('photo').addEventListener('change',e=>{
+ const f=e.target.files[0];if(!f)return;
+ const url=URL.createObjectURL(f),im=new Image();
+ im.onload=()=>{userPhoto=im;scale=1;x=0;y=0;document.getElementById('zoom').value=1;draw();URL.revokeObjectURL(url)};
+ im.src=url;
+});
+document.getElementById('zoom').addEventListener('input',e=>{scale=+e.target.value;draw()});
+nameInput.addEventListener('input',draw);
+function pos(e){const b=canvas.getBoundingClientRect();return {x:(e.clientX-b.left)*1280/b.width,y:(e.clientY-b.top)*1280/b.height}}
+canvas.addEventListener('pointerdown',e=>{if(!userPhoto)return;dragging=true;canvas.setPointerCapture(e.pointerId);const p=pos(e);lastX=p.x;lastY=p.y});
+canvas.addEventListener('pointermove',e=>{if(!dragging)return;const p=pos(e);x+=p.x-lastX;y+=p.y-lastY;lastX=p.x;lastY=p.y;draw()});
+canvas.addEventListener('pointerup',()=>dragging=false);canvas.addEventListener('pointercancel',()=>dragging=false);
+document.getElementById('reset').onclick=()=>{scale=1;x=0;y=0;document.getElementById('zoom').value=1;draw()};
+document.getElementById('download').onclick=()=>{draw();const a=document.createElement('a');a.download='mahfil-photo-frame.png';a.href=canvas.toDataURL('image/png');a.click()};
+</script>
+</body>
+</html>
